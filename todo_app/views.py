@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import ToDo
-from .serializers import ToDoSerializer
+from .serializers import ToDoSerializer, UpdateToDoSerializer
 
 
 @api_view(['GET'])
@@ -29,3 +29,32 @@ def create_todo(request: Request) -> Response:
     #     todo.save()
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
     # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PATCH'])
+def update_todo(request: Request, pk) -> Response:
+    print(pk)
+    try:
+        todo = ToDo.objects.get(pk=pk)
+    except ToDo.DoesNotExist:
+        return Response({'detail': f'ToDo with {pk} does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = UpdateToDoSerializer(
+        instance=todo, 
+        data=request.data
+        )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def delete_todo(request: Request, pk) -> Response:
+    try:
+        todo = ToDo.objects.get(pk=pk)
+    except ToDo.DoesNotExist:
+        return Response({'detail': f'ToDo with {pk} does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    todo.delete()
+    return Response({'detail': 'Successfully deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# TODO: написать функцию для получения ОДНОГО объекта
+# TODO: подключить Swagger
